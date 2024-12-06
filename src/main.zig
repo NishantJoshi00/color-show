@@ -45,10 +45,13 @@ pub fn main() !void {
 
         const data = try entry.showColor(allocator);
         defer allocator.free(data);
+        const color_code = try entry.color.show(allocator);
+        defer allocator.free(color_code);
 
-        try writer.print("{s} #{s}", .{ data, arg });
+        try writer.print("{s} {s}", .{ data, color_code });
     }
 
+    std.debug.print("\n", .{});
     std.log.debug("alloc={}", .{arena.queryCapacity()});
 }
 
@@ -76,6 +79,10 @@ const Entry = struct {
         red: u8,
         green: u8,
         blue: u8,
+
+        fn show(self: Color, alloc: std.mem.Allocator) ![]const u8 {
+            return try std.fmt.allocPrint(alloc, "#{x}{x}{x}", .{ self.red, self.green, self.blue });
+        }
 
         fn from_hex(hex: []const u8) !Color {
             std.log.debug("color={s}", .{hex});
