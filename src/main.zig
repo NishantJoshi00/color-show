@@ -1,5 +1,17 @@
 const std = @import("std");
 
+fn line_height() !usize {
+    const bindings = @cImport({
+        @cInclude("sys/ioctl.h");
+    });
+    var sz: bindings.winsize = undefined;
+    if (bindings.ioctl(0, bindings.TIOCGWINSZ, &sz) != 0) {
+        @panic("ioctl failed");
+    }
+
+    return sz.ws_ypixel / sz.ws_row;
+}
+
 pub fn main() !void {
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
@@ -11,8 +23,15 @@ pub fn main() !void {
 
     _ = arg_iter.next(); // Skip the program name
     const writer = std.io.getStdOut().writer();
+    const height = try line_height();
 
+    var count: u8 = 0;
     while (arg_iter.next()) |arg| {
+        count += 1;
+        if (count > 1) {
+            try writer.print("\n", .{});
+        }
+
         std.debug.assert(arg.len == 6);
         for (arg) |c| {
             std.debug.assert(std.ascii.isHex(c));
@@ -20,17 +39,17 @@ pub fn main() !void {
 
         const entry = Entry.new(
             try Entry.Color.from_hex(arg),
-            44,
-            44,
+            height,
+            height,
         );
 
         const data = try entry.showColor(allocator);
         defer allocator.free(data);
 
-        try writer.print("{s} #{s}\n", .{ data, arg });
+        try writer.print("{s} #{s}", .{ data, arg });
     }
 
-    std.log.debug("alloc={}\n", .{arena.queryCapacity()});
+    std.log.debug("alloc={}", .{arena.queryCapacity()});
 }
 
 fn escape_fence(alloc: std.mem.Allocator, data: []const u8) ![]const u8 {
@@ -59,7 +78,7 @@ const Entry = struct {
         blue: u8,
 
         fn from_hex(hex: []const u8) !Color {
-            std.log.debug("color={s}\n", .{hex});
+            std.log.debug("color={s}", .{hex});
 
             const red = try std.fmt.parseUnsigned(u8, hex[0..2], 16);
             const green = try std.fmt.parseUnsigned(u8, hex[2..4], 16);
@@ -71,7 +90,7 @@ const Entry = struct {
         fn color_matrix(self: Color, alloc: std.mem.Allocator, size: usize) ![]const u8 {
             const data = try alloc.alloc(u8, size * 3);
 
-            std.log.debug("matrix size={d}\n", .{size});
+            std.log.debug("matrix size={d}", .{size});
 
             var i: usize = 0;
             while (i < size) {
