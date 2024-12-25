@@ -81,7 +81,7 @@ const Entry = struct {
         blue: u8,
 
         fn show(self: Color, alloc: std.mem.Allocator) ![]const u8 {
-            return try std.fmt.allocPrint(alloc, "#{x}{x}{x}", .{ self.red, self.green, self.blue });
+            return try std.fmt.allocPrint(alloc, "#{x:0>2}{x:0>2}{x:0>2}", .{ self.red, self.green, self.blue });
         }
 
         fn from_hex(hex: []const u8) !Color {
