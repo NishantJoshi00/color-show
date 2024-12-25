@@ -12,6 +12,11 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
 
+    if (target.result.os.tag == .linux) {
+        exe.linkLibC();
+    }
+
+
     b.installArtifact(exe);
 
     const run_cmd = b.addRunArtifact(exe);
