@@ -1,10 +1,8 @@
 .{
-    .name = "color-show",
-
-    .version = "0.0.0",
-
+    .name = .color_show,
+    .version = "0.1.0",
+    .fingerprint = 0x4fd9e245358fd01f,
     .dependencies = .{},
-
     .paths = .{
         "build.zig",
         "build.zig.zon",
